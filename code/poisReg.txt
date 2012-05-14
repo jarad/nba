@@ -1,0 +1,9 @@
+model {
+  for (i in 1:n) {
+    y[i] ~ dpois(mu[i])
+    mu[i] <- exp(inprod(x[i,],b[]))
+  }
+
+  for (j in 1:p) { b[j] ~ dnorm(0.0,1.0) }
+}
+

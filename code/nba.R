@@ -1,17 +1,17 @@
 # Simulate data
 n = 10
-mu = 1
-y = rpois(n,mu)
+x = cbind(1,rnorm(n))
+b = c(0,.1)
+y = rpois(n,exp(x%*%b))
 
 # Poisson regression
-summary(mod <- glm(y~1, poisson))
-exp(confint(mod))
+summary(freq <- glm(y~x-1, poisson))
+confint(freq)
 
 # Data/inits/model for BUGS/JAGS
-dat = list(n=n,y=y)
-inits = NULL
-parms = c("mu")
-model.file= "poisson.txt"
+dat = list(n=n,y=y,x=x,p=ncol(x))
+parms = c("b")
+model.file= "poisReg.txt"
 
 # JAGS
 require(rjags)
