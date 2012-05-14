@@ -13,22 +13,12 @@ inits = NULL
 parms = c("mu")
 model.file= "poisson.txt"
 
-# WinBUGS
-require(R2WinBUGS)
-o1 = bugs(dat,NULL,parms,model.file) # Error, but appears to run
-
-require(BRugs)
-modelCheck("poisson.txt")
-bugsData(dat,"data.txt")
-modelData("data.txt")
-modelCompile(numChains=2)
-modelGenInits()
-modelUpdate(1000)
-samplesSet(parms)
-modelUpdate(1000)
-samplesStats("*")
-
-
+# JAGS
+require(rjags)
+mod = jags.model(model.file, data=dat, n.chains=3)
+samps = coda.samples(mod, parms, 1000)
+gelman.diag(samps)
+summary(samps)
 
 
 
