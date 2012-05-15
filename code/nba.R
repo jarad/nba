@@ -1,17 +1,25 @@
 # Simulate data
-n = 10
-x = cbind(1,rnorm(n))
+n = 100 # number of replicates
+m = 100 # number of individuals
+
+# Fixed effect
+x = cbind(1,rnorm(n*m))
 b = c(0,.1)
-y = rpois(n,exp(x%*%b))
+
+# Random effect
+a = rnorm(m)
+z = rep(1:m,each=n)
+y = rpois(n*m,exp(x%*%b+a[z]))
 
 # Poisson regression
-summary(freq <- glm(y~x-1, poisson))
-confint(freq)
+require(lme4)
+summary(freq <- glmer(y~x[,-1]+(1|z), family=poisson))
+plot(a,ranef(freq)$z[,1])
 
 # Data/inits/model for BUGS/JAGS
-dat = list(n=n,y=y,x=x,p=ncol(x))
-parms = c("b")
-model.file= "poisReg.txt"
+dat = list(n=n,y=y,x=x,p=ncol(x),m=m,z=z)
+parms = c("b","a","sigma")
+model.file= "poisMixed.txt"
 
 # JAGS
 require(rjags)
