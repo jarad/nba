@@ -1,8 +1,0 @@
-model {
-  for (i in 1:n) {
-    y[i] ~ dpois(mu)
-  }
-
-  mu ~ dgamma(1,1)
-}
-
