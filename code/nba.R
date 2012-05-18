@@ -8,7 +8,7 @@ id   = seq(from=n.sire+n.dam.only+1,length=length(dam),by=1)
 pedigree = data.frame(id=id,dam=dam,sire=sire)
 maxparity = sample(4, nrow(pedigree), replace=T)
 
-a = rnorm(n.sire+n.dam.only,0,.11)
+a = rnorm(n.sire+n.dam.only,0,1)
 for (i in 1:nrow(pedigree)) a[id[i]] = rnorm(1,.5*a[sire[i]]+.5*a[dam[i]],.1)
 
 # Fixed effects
@@ -29,12 +29,12 @@ summary(freq <- glmer(y~x+(1|id), family=poisson))
 # Data/inits/model for BUGS/JAGS
 dat = list(n=n,y=y,x=cbind(1,x),p=ncol(x)+1,m=length(a),id=id, idrow=id-(n.sire+n.dam.only), 
            n.sire=length(unique(sire)), n.dam.only=length(unique(dam)), sire=sire, dam=dam)
-parms = c("b","a","sigma","p")
+parms = c("b","a","sigma","pp")
 model.file= "poisHier.txt"
 
 # JAGS
 require(rjags)
-mod = jags.model(model.file, data=dat, n.chains=3)
+mod = jags.model(model.file, data=dat, n.chains=3, n.adapt=1e5)
 samps = coda.samples(mod, parms, 1e4, thin=10)
 gelman.diag(samps)
 summary(samps)
