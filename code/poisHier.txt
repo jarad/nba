@@ -16,7 +16,7 @@ model {
   }
   for (i in (n.sire+n.dam.only+1):m) { 
     a[i] ~ dnorm(mu.a[i], tau[3]) 
-    mu.a[i] <- p*a[sire[idrow[i]]]+(1-p)*a[dam[idrow[i]]]
+    mu.a[i] <- pp*a[sire[idrow[i]]]+(1-pp)*a[dam[idrow[i]]]
   }
 
   # Variances for pedigree random effects
