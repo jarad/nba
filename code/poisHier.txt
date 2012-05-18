@@ -5,7 +5,7 @@ model {
   }
 
   # Fixed effects
-  for (i in 1:p) { b[i] ~ dnorm(0.0, 1.0) }
+  for (i in 1:p) { b[i] ~ dnorm(0.0, 0.10) }
 
   # Pedigree random effects
   for (i in 1:n.sire) { 
@@ -16,7 +16,7 @@ model {
   }
   for (i in (n.sire+n.dam.only+1):m) { 
     a[i] ~ dnorm(mu.a[i], tau[3]) 
-    mu.a[i] <- 0.5*a[sire[idrow[i]]]+0.5*a[dam[idrow[i]]]
+    mu.a[i] <- p*a[sire[idrow[i]]]+(1-p)*a[dam[idrow[i]]]
   }
 
   # Variances for pedigree random effects
@@ -24,5 +24,7 @@ model {
     tau[i]   <- pow(sigma[i],-2)
     sigma[i] ~ dunif(0,10)
   }
+
+  pp ~ dbeta(1,1)
 }
 
