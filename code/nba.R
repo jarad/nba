@@ -9,7 +9,7 @@ maxparity = sample(4, length(id), replace=T)
 n    = sum(maxparity)
 
 a = rnorm(n.sire+n.dam.only,0,1)
-for (i in 1:n) a[id[i]] = rnorm(1,.5*a[sire[i]]+.5*a[dam[i]],.1)
+for (i in 1:length(id)) a[id[i]] = rnorm(1,.5*a[sire[i]]+.5*a[dam[i]],.1)
 
 # Fixed effects
 id = rep(id,maxparity)
@@ -22,8 +22,8 @@ hist(y,seq(-.5,max(y)+.5,by=1))
 
 # Data frame
 d = data.frame(y=y, id=id, x=x,
-               sire = rep(pedigree$sire, maxparity)
-               dam  = rep(pedigree$dam , maxparity)
+               sire = rep(sire, maxparity),
+               dam  = rep(dam , maxparity))
 
 # Mixed effect Poisson regression (no pedigree)
 require(lme4)
@@ -31,19 +31,21 @@ summary(freq <- glmer(y~x+(1|id), family=poisson))
 #plot(a,ranef(freq)$z[,1])
 
 # Data/inits/model for BUGS/JAGS
-dat = list(n=n,y=y,x=cbind(1,x),p=ncol(x)+1,m=length(a),id=id, sire=d$sire, dam=d$dam, 
-           n.sire=length(unique(sire)), n.dam.only=length(unique(dam)), sire=sire, dam=dam)
+dat = list(n=n,y=y,x=cbind(1,x),p=ncol(x)+1,m=length(a),id=id, sire=sire, dam=dam, 
+           n.sire=length(unique(sire)), n.dam.only=length(unique(dam)))
 parms = c("b","a","sigma","pp")
 model.file= "poisHier.txt"
 
 # JAGS
 require(rjags)
-mod = jags.model(model.file, data=dat, n.chains=3, n.adapt=1e5)
+mod = jags.model(model.file, data=dat, n.chains=3, n.adapt=1e4)
 samps = coda.samples(mod, parms, 1e4, thin=10)
 gelman.diag(samps)
 summary(samps)
 
-
+a.med = apply(as.matrix(samps[,1:230]),2,median)
+plot(a,a.med, type="n")
+text(a[1:30],a.med[1:30],as.character(1:230)[1:30])
 
 
 
