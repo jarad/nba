@@ -28,12 +28,12 @@ d = data.frame(y=y, id=id, x=x,
 # Mixed effect Poisson regression (no pedigree)
 require(lme4)
 summary(freq <- glmer(y~x+(1|id), family=poisson))
-#plot(a,ranef(freq)$z[,1])
+#plot(a[-c(1:30)],ranef(freq)$id[,1])
 
 # Data/inits/model for BUGS/JAGS
 dat = list(n=n,y=y,x=cbind(1,x),p=ncol(x)+1,m=length(a),id=id, sire=sire, dam=dam, 
            n.sire=length(unique(sire)), n.dam.only=length(unique(dam)))
-parms = c("b","a","sigma","pp")
+parms = c("b","a","sigma")
 model.file= "poisHier.txt"
 
 # JAGS
@@ -44,7 +44,7 @@ gelman.diag(samps)
 summary(samps)
 
 a.med = apply(as.matrix(samps[,1:230]),2,median)
-plot(a,a.med, type="n")
+plot(a,a.med)
 text(a[1:30],a.med[1:30],as.character(1:230)[1:30])
 
 
