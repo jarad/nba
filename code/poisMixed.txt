@@ -1,5 +1,5 @@
 model {
-  for (i in 1:n) {
+  for (i in 1:n*m) {
     y[i] ~ dpois(mu[i])
     log(mu[i]) <- inprod(x[i,],b[])+a[z[i]]
   }

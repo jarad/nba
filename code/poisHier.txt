@@ -1,0 +1,28 @@
+model {
+  for (i in 1:n) {
+    y[i] ~ dpois(mu[i])
+    log(mu[i]) <- inprod(x[i,],b[])+a[id[i]]
+  }
+
+  # Fixed effects
+  for (i in 1:p) { b[i] ~ dnorm(0.0, 0.10) }
+
+  # Pedigree random effects
+  for (i in 1:n.sire) { 
+    a[i] ~ dnorm(0.0, tau[1]) 
+  }
+  for (i in (n.sire+1):(n.sire+n.dam.only)) { 
+    a[i] ~ dnorm(0.0, tau[2]) 
+  }
+  for (i in (n.sire+n.dam.only+1):m) { 
+    a[i] ~ dnorm(mu.a[i], tau[3]) 
+    mu.a[i] <- 0.5*a[sire[i-n.sire-n.dam.only]]+(1-0.5)*a[dam[i-n.sire-n.dam.only]]
+  }
+
+  # Variances for pedigree random effects
+  for (i in 1:3) {
+    tau[i]   <- pow(sigma[i],-2)
+    sigma[i] ~ dunif(0,10)
+  }
+}
+
