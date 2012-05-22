@@ -9,10 +9,12 @@ model {
 
   # Pedigree random effects
   for (i in 1:n.sire) { 
-    a[i] ~ dnorm(0.0, tau[1]) 
+    a[i] ~ dnorm(mu.a[i], tau[1]) 
+    mu.a[i] <- 0.0
   }
   for (i in (n.sire+1):(n.sire+n.dam.only)) { 
-    a[i] ~ dnorm(0.0, tau[2]) 
+    a[i] ~ dnorm(mu.a[i], tau[2]) 
+    mu.a[i] <- 0.0
   }
   for (i in (n.sire+n.dam.only+1):m) { 
     a[i] ~ dnorm(mu.a[i], tau[3]) 

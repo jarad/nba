@@ -1,24 +1,27 @@
 d = read.table("farm62.txt", header=T)
 
-sires = unique(d$sire); n.sires = length(sires)
-dams  = unique(d$dam)
-sows = unique(d$sowid)
-dams.only = setdiff(dams,sows); n.dams.only = length(dams.only)
-other.sows = setdiff(sows,dams.only)
+sires = unique(as.character(d$sire)); n.sires = length(sires)
+dams  = unique(as.character(d$dam))
+sows = unique(as.character(d$sowid))
+dams.only = setdiff(dams,sows); n.dams.only = length(dams.only) # Sows with no nba data
 
-ids = factor(c(sires,dams,other.sows),c(sires,dams,other.sows), ordered=T)
-
+ids = factor(c(sires,dams.only,sows),c(sires,dams.only,sows), ordered=T)
 
 # Pedigree
-first = match(sows,d$sowid)  # Assumes all the data are correct
+first = match(sows,d$sowid)  # Assumes all the pedigree data are correct
 pedigree = d[first,c(1,6,7)]
-pedigree$sire = 
+for (i in 1:ncol(pedigree)) {
+  levels(pedigree[,i]) = levels(ids)
+  pedigree[,i] = as.numeric(pedigree[,i])
+}
+names(pedigree)[1] = "id"
 
 # Mixed effect Poisson regression (no pedigree)
 require(lme4)
 summary(freq <- glmer(nba~factor(parity)+(1|sowid), d, family=poisson))
 re = ranef(freq)$sowid[,1]
 
+# Evidence of heavy tails
 par(mfrow=c(1,2))
 hist(re, freq=F, 30)
 curve(dnorm(x, mean(re), sd(re)), add=T)
@@ -28,12 +31,11 @@ qqline(re)
 
 # Data/inits/model for BUGS/JAGS
 x = model.matrix(freq)
-dat = list(n=nrow(d),y=d$nba,x=x,p=ncol(x),
-           m=length(a),
-           id=id, sire=sire, dam=dam, 
-           n.sire=length(unique(sire)), n.dam.only=length(unique(dam)))
-parms = c("b","a","sigma")
-model.file= "poisHier.txt"
+dat = list(n=nrow(d), y=d$nba, x=x, p=ncol(x), sowid=d$sowid,
+           m=length(ids), n.sire=length(sires), n.dam.only=length(dams.only),
+           sire=pedigee$sire, dam=pedigree$dam)
+parms = c("b","a","sigma","mu.a")
+model.file= "../code/poisHier.txt"
 
 # JAGS
 require(rjags)
